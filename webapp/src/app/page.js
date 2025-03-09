@@ -1,149 +1,182 @@
 "use client"
 
 import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import * as React from 'react';
 import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import { Button, Link, TextField, Typography } from '@mui/material';
+import { Checkbox, FormControlLabel, Typography, InputAdornment } from '@mui/material';
 import { useRouter } from 'next/navigation';
+
+
 
 
 
 export default function Home() {
   const router = useRouter();
   const [inputValue, setInputValue] = React.useState('');
-  const [value, setValue] = React.useState(0)
+  const [value, setValue] = React.useState(0);
+  const [checked, setChecked] = React.useState({
+    title: true,
+    author: true,
+    institution: true,
+    source: true,
+    url: true,
+    year: true,
+    date: true,
+  });
+
+  const selectedFilters = Object.keys(checked).filter(key => checked[key]); // 过滤出选中的选项
+  console.log(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
 
 
+
+
+  // // 使用 useEffect 来在组件加载时获取数据
+  // React.useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+  //       const response = await fetch("/api/getData");
+  //       const jsonData = await response.json();
+  //       if (jsonData.success) {
+  //         setData(jsonData.data);
+  //         console.log("数据获取成功", jsonData.data);
+  //       }
+  //     } catch (error) {
+  //       console.error("数据获取失败", error);
+  //     }
+  //   }
+  //   fetchData();
+  // }, []);
+
+
+  // 监听 Tab 切换
   const handleChange = (event, newValue) => {
-    console.log(newValue);
     setValue(newValue);
   };
 
-  // 监听回车事件
+  // 监听输入框回车事件
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
-      // alert(inputValue);
-      router.push('/ShowForm'); // 跳转到 anotherPage 页面
-      // 你可以在这里做你想做的事情，例如提交表单等
+      const selectedFilters = Object.keys(checked).filter(key => checked[key]); // 过滤出选中的选项
+      console.log(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
+      router.push(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
+
+      // router.push('/ShowForm'?selectedFilters.join(','));
+      // router.push({
+      //   pathname:'/ShowForm',
+      //   query:{ filters: selectedFilters.join(','), keyword: inputValue }
+      // });
     }
   };
 
 
+
+
+  // 监听输入框变化
   const InputFiledhandleChange = (event) => {
     setInputValue(event.target.value);
   };
 
-  // 跳转到指定页面
-  const handleButtonClick = () => {
-    router.push('/ShowForm'); // 跳转到 anotherPage 页面
+  // 复选框变化
+  const handleCheckboxChange = (event) => {
+    setChecked({
+      ...checked,
+      [event.target.name]: event.target.checked,
+    });
   };
 
   return (
-    <div>
-      <Box sx={
-        {
-          display: 'flex',            // 启用 Flexbox 布局
-          justifyContent: 'center',   // 横向居中
-          alignItems: 'center',       // 纵向居中
-          height: '100vh',             // 高度为 100% 的视口高度
-          width: '100%',               // 宽度为 100%
-          backgroundColor: 'lightblue', // 背景色
-          flexDirection: 'column',
-          gap: '10px',
-
-        }
-      }>
-        <Box sx={{
-          transform: 'translate(0%, -200%)',
-        }}>
-
-          <Typography
-            variant="h1"
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              alignItems: 'center',
-              fontSize: 'clamp(3rem, 10vw, 3.5rem)',
-              fontFamily: 'Roboto,sans-serif',
-              // color:'white'
-            }}
-          >
-            大数据
-            <Typography
-              component="span"
-              variant="h1"
-              sx={(theme) => ({
-                fontSize: 'inherit',
-                color: 'primary.main',
-                ...theme.applyStyles('dark', {
-                  color: 'primary.light',
-                }),
-              })}
-            >
-              检索
-            </Typography>
-          </Typography>
-        </Box>
-
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center', // 水平居中
-          alignItems: 'center',     // 垂直居中
-          transform: 'translate(0%, -100%)',
-        }}>
-          <Tabs value={value} onChange={handleChange} >
-            <Tab label="标题" {...a11yProps(value)} onClick={handleButtonClick} />
-            <Tab label="作者" {...a11yProps(value)}onClick={handleButtonClick} />
-            <Tab label="机构地区" {...a11yProps(value)} onClick={handleButtonClick}/>
-            <Tab label="出处" {...a11yProps(value)} onClick={handleButtonClick}/>
-            <Tab label="网址" {...a11yProps(value)} onClick={handleButtonClick}/>
-            <Tab label="年期" {...a11yProps(value)} onClick={handleButtonClick}/>
-            <Tab label="上网时间" {...a11yProps(value)} />
-          </Tabs>
-        </Box>
-
-        <Box
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh', // 使页面完全居中
+        width: '100%',
+        backgroundColor: 'white',
+        gap: '20px', // 增加间距，避免元素挤在一起
+      }}
+    >
+      {/* 标题 */}
+      <Typography
+        variant="h1"
+        sx={{
+          fontSize: 'clamp(3rem, 10vw, 3.5rem)',
+          fontFamily: 'Roboto, sans-serif',
+          fontWeight: 'bold', // 标题加粗
+          color: 'black', // 设为黑色
+        }}
+      >
+        期刊论文数据检索
+        <Typography
+          component="span"
+          variant="h1"
           sx={{
-            display: 'flex',
-            justifyContent: 'center', // 水平居中
-            alignItems: 'center',     // 垂直居中
-            transform: 'translate(0%, -50%)',
+            color: 'primary.main',
+            fontWeight: 'bold',
+            //间距
           }}
         >
-          <FormControl >
+        </Typography>
+      </Typography>
 
-            <OutlinedInput
-              value={inputValue}
-              onKeyDown={handleKeyDown}  // 监听回车键
-              onChange={InputFiledhandleChange}
-              sx={{
-                width: '800px',      // 设置宽度
-                height: '50px',      // 设置高度
-                fontSize: '16px',    // 设置字体大小
-                padding: '12px',     // 设置内边距
-              }}
-              placeholder="请输入关键词以便查询"
-            //  size="small"
+      {/* 复选框 + Tabs */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+        <Tabs value={value} onChange={handleChange} sx={{ minHeight: 48 }}>
+          {[
+            { key: 'title', label: '标题' },
+            { key: 'author', label: '作者' },
+            { key: 'institution', label: '机构地区' },
+            { key: 'source', label: '出处' },
+            { key: 'url', label: '网址' },
+            { key: 'year', label: '年期' },
+            { key: 'date', label: '上网时间' },
+          ].map(({ key, label }) => (
+            <Tab
+              key={key}
+              label={
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={checked[key]}
+                      onChange={handleCheckboxChange}
+                      name={key}
+                    />
+                  }
+                  label={label}
+                />
+              }
+              sx={{ minHeight: 48 }}
             />
-
-            {/* <Button variant="contained" sx={{ marginLeft: 2 }}>检索</Button> */}
-          </FormControl>
-        </Box>
+          ))}
+        </Tabs>
       </Box>
-    </div >
-  );
-  function a11yProps(index) {
-    return {
-      id: `simple-tab-${index}`,
-      'aria-controls': `simple-tabpanel-${index}`,
-    };
-  }
 
+      {/* 输入框 */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <FormControl sx={{ width: '60%' }}>
+          <OutlinedInput
+            value={inputValue}
+            onKeyDown={handleKeyDown}
+            onChange={InputFiledhandleChange}
+            sx={{
+              width: '100%', // 让输入框适应容器大小
+              height: '60px', // 增大输入框
+              fontSize: '18px', // 增大字体
+              padding: '12px',
+            }}
+            placeholder="请输入关键词以便查询"
+            startAdornment={
+              <InputAdornment position="start">
+                <img src="/images/searchIcon.png" alt="搜索" width="24" height="24" />
+              </InputAdornment>
+            }
+          />
+        </FormControl>
+      </Box>
+    </Box>
+  );
 }
