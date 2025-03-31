@@ -16,7 +16,8 @@ import {
     Box,
     Button,
     Checkbox,
-    FormControlLabel
+    FormControlLabel,
+    TextField
 } from '@mui/material';
 
 import { useRouter } from 'next/navigation';
@@ -24,11 +25,11 @@ import { useRouter } from 'next/navigation';
 export default function DataTable() {
     // 控制每列的可见性
     const [columnsVisibility, setColumnsVisibility] = useState({
-        title: true,
-        author: true,
-        institution: true,
-        source: true,
-        url: true,
+        标题: true,
+        作者: true,
+        机构地区: true,
+        出处: true,
+        网址: true,
     });
 
     const itemsPerPage = 100;
@@ -259,76 +260,97 @@ export default function DataTable() {
 
     return (
         <Box sx={{ width: '100%', padding: 3 }}>
-            <Button variant="outlined" color="primary" onClick={handleGoBack} sx={{ marginBottom: 2, boxShadow: 3, '&:hover': { boxShadow: 6 } }}>
-                返回
-            </Button>
-            <Button variant="contained" color="primary" onClick={exportToPdf} sx={{ marginBottom: 2, marginLeft: 2 }}>
-                导出PDF
-            </Button>
-            <Typography variant="h4" gutterBottom align="center" sx={{ fontWeight: 'bold' }}>
-                Data Table
-            </Typography>
-
-            {/* 可见列筛选 */}
-            <Box sx={{ marginBottom: 2 }}>
-                <Typography variant="h6">导出筛选</Typography>
-                {Object.keys(columnsVisibility).map((column) => (
-                    <FormControlLabel
-                        key={column}
-                        control={
-                            <Checkbox
-                                checked={columnsVisibility[column]}
-                                onChange={() => toggleColumnVisibility(column)}
-                                color="primary"
-                            />
-                        }
-                        label={column}
-                    />
-                ))}
-            </Box>
-
-            <TableContainer component={Paper} elevation={3} sx={{ boxShadow: 3 }}>
-                <Table sx={{ borderCollapse: 'collapse' }}>
-                    <TableHead>
-                        <TableRow sx={{ backgroundColor: '#f4f6f8' }}>
-                            <TableCell sx={headerCellStyle}>序号</TableCell>
-                            {columnsVisibility.title && <TableCell sx={headerCellStyle}>标题</TableCell>}
-                            {columnsVisibility.author && <TableCell sx={headerCellStyle}>作者</TableCell>}
-                            {columnsVisibility.institution && <TableCell sx={headerCellStyle}>机构地区</TableCell>}
-                            {columnsVisibility.source && <TableCell sx={headerCellStyle}>出处</TableCell>}
-                            {columnsVisibility.url && <TableCell sx={headerCellStyle}>网址</TableCell>}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {Array.isArray(pageData) && pageData.length > 0 ? (
-                            pageData.map((row, index) => (
-                                <TableRow key={index} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' }, '&:hover': { backgroundColor: '#f1f1f1' }, borderTop: '1px solid #ddd', borderBottom: '1px solid #ddd' }}>
-                                    <TableCell>{index + 1 + (currentPage - 1) * itemsPerPage}</TableCell>
-                                    {columnsVisibility.title && <TableCell>{row.title}</TableCell>}
-                                    {columnsVisibility.author && <TableCell>{row.author}</TableCell>}
-                                    {columnsVisibility.institution && <TableCell>{row.institution}</TableCell>}
-                                    {columnsVisibility.source && <TableCell>{row.source}</TableCell>}
-                                    {columnsVisibility.url && <TableCell><Link href={row.url} target="_blank" rel="noopener">{row.url}</Link></TableCell>}
-                            
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={8} align="center" sx={{ padding: 3 }}>
-                                    没有数据
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-
-            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
-                <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>上一页</Button>
-                <Typography sx={{ margin: '0 15px' }}>第 {currentPage} 页 / 共 {totalPages} 页</Typography>
-                <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>下一页</Button>
+        {/* 顶部标题和搜索框 */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+            {/* 左侧标题 */}
+            <Typography variant="h4" sx={{ fontWeight: 'bold' }} color='black'>期刊论文数据检索</Typography>
+            
+            {/* 右侧搜索栏 */}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <TextField
+                    variant="outlined"
+                    placeholder="输入关键词搜索..."
+                    size="small"
+                    sx={{ marginRight: 1 }}
+                    // onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {/* <Button variant="contained" color="primary" onClick={handleSearch}>搜索</Button> */}
             </Box>
         </Box>
+    
+        {/* 导出PDF按钮（放在表格上方靠右） */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+            <Button variant="contained" color="primary" onClick={exportToPdf}>
+                导出PDF
+            </Button>
+        </Box>
+    
+        {/* 可见列筛选 */}
+        <Box sx={{ marginBottom: 2 }}>
+            <Typography variant="h6" color='black'>显示列</Typography>
+            {Object.keys(columnsVisibility).map((column) => (
+                <FormControlLabel
+                    key={column}
+                    control={
+                        <Checkbox
+                            checked={columnsVisibility[column]}
+                            onChange={() => toggleColumnVisibility(column)}
+                            color="primary"
+                        />
+                    }
+                    label={column}
+                />
+            ))}
+        </Box>
+    
+        {/* 表格 */}
+        <TableContainer component={Paper} elevation={3} sx={{ boxShadow: 3 }}>
+            <Table sx={{ borderCollapse: 'collapse' }}>
+                <TableHead>
+                    <TableRow sx={{ backgroundColor: '#f4f6f8' }}>
+                        <TableCell sx={headerCellStyle}>序号</TableCell>
+                        {columnsVisibility.标题 && <TableCell sx={headerCellStyle}>标题</TableCell>}
+                        {columnsVisibility.作者 && <TableCell sx={headerCellStyle}>作者</TableCell>}
+                        {columnsVisibility.机构地区 && <TableCell sx={headerCellStyle}>机构地区</TableCell>}
+                        {columnsVisibility.出处 && <TableCell sx={headerCellStyle}>出处</TableCell>}
+                        {columnsVisibility.网址 && <TableCell sx={headerCellStyle}>网址</TableCell>}
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {Array.isArray(pageData) && pageData.length > 0 ? (
+                        pageData.map((row, index) => (
+                            <TableRow key={index} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' }, '&:hover': { backgroundColor: '#f1f1f1' }, borderTop: '1px solid #ddd', borderBottom: '1px solid #ddd' }}>
+                                <TableCell align="center">{index + 1 + (currentPage - 1) * itemsPerPage}</TableCell>
+                                {columnsVisibility.标题 && <TableCell align="center">{row.title}</TableCell>}
+                                {columnsVisibility.作者 && <TableCell align="center">{row.author}</TableCell>}
+                                {columnsVisibility.机构地区 && <TableCell align="center">{row.institution}</TableCell>}
+                                {columnsVisibility.出处 && <TableCell align="center">{row.source}</TableCell>}
+                                {columnsVisibility.网址 && (
+                                    <TableCell align="center">
+                                        <Link href={row.url} target="_blank" rel="noopener">{row.url}</Link>
+                                    </TableCell>
+                                )}
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={8} align="center" sx={{ padding: 3 }}>
+                                没有数据
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    
+        {/* 分页 */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+            <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>上一页</Button>
+            <Typography sx={{ margin: '0 15px' }}>第 {currentPage} 页 / 共 {totalPages} 页</Typography>
+            <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>下一页</Button>
+        </Box>
+    </Box>
+    
     );
 }
 
@@ -340,8 +362,4 @@ const headerCellStyle = {
     textAlign: 'center',
 };
 
-const tableCellStyle = {
-    border: '1px solid #ddd',
-    padding: '10px',
-    textAlign: 'center',
-};
+
