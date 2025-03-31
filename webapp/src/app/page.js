@@ -19,12 +19,10 @@ export default function Home() {
   const [value, setValue] = React.useState(0);
   const [checked, setChecked] = React.useState({
     title: true,
-    author: true,
-    institution: true,
-    source: true,
-    url: true,
-    year: true,
-    date: true,
+    author: false,
+    institution: false,
+    source: false,
+    url: false,
   });
 
   const selectedFilters = Object.keys(checked).filter(key => checked[key]); // 过滤出选中的选项
@@ -60,7 +58,7 @@ export default function Home() {
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       const selectedFilters = Object.keys(checked).filter(key => checked[key]); // 过滤出选中的选项
-      console.log(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
+      // console.log(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
       router.push(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
 
       // router.push('/ShowForm'?selectedFilters.join(','));
@@ -72,7 +70,7 @@ export default function Home() {
   };
 
 
-
+  
 
   // 监听输入框变化
   const InputFiledhandleChange = (event) => {
@@ -132,8 +130,7 @@ export default function Home() {
             { key: 'institution', label: '机构地区' },
             { key: 'source', label: '出处' },
             { key: 'url', label: '网址' },
-            { key: 'year', label: '年期' },
-            { key: 'date', label: '上网时间' },
+        
           ].map(({ key, label }) => (
             <Tab
               key={key}

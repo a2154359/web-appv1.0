@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     let page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = 10;  // 每页显示100条数据
+    const limit =100;  // 每页显示100条数据
     const offset = (page - 1) * limit;  // 计算跳过的数据量
 
     // 输出分页信息调试
