@@ -22,11 +22,11 @@ export default function Home() {
     author: false,
     institution: false,
     source: false,
-    url: false,
+    year: false,
   });
 
-  const selectedFilters = Object.keys(checked).filter(key => checked[key]); // 过滤出选中的选项
-  console.log(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
+  // const selectedFilters = Object.keys(checked).filter(key => checked[key]); // 过滤出选中的选项
+  // console.log(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
 
 
 
@@ -58,7 +58,7 @@ export default function Home() {
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       const selectedFilters = Object.keys(checked).filter(key => checked[key]); // 过滤出选中的选项
-      // console.log(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
+      console.log(`参数传递=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
       router.push(`/ShowForm?filters=${encodeURIComponent(selectedFilters.join(','))}&keyword=${encodeURIComponent(inputValue)}`);
 
       // router.push('/ShowForm'?selectedFilters.join(','));
@@ -129,7 +129,7 @@ export default function Home() {
             { key: 'author', label: '作者' },
             { key: 'institution', label: '机构地区' },
             { key: 'source', label: '出处' },
-            { key: 'url', label: '网址' },
+            { key: 'year', label: '期刊' },
         
           ].map(({ key, label }) => (
             <Tab

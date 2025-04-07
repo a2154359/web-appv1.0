@@ -17,6 +17,10 @@ import {
     Button,
     Checkbox,
     FormControlLabel,
+    FormControl,
+    MenuItem,
+    Select,
+    CircularProgress,
     TextField
 } from '@mui/material';
 
@@ -29,65 +33,78 @@ export default function DataTable() {
         作者: true,
         机构地区: true,
         出处: true,
-        网址: true,
+        期刊: true,
     });
 
     const itemsPerPage = 100;
     const router = useRouter();
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [pageData, setPageData] = useState([]); // Current page data
+    const [pageData, setPageData] = useState([]); // 保存所有的数据
+    const [currentPageData, setCurrentPageData] = useState([]);//当前页的数据
 
-    const [allData, setAllData] = useState([]);  // 保存所有的数据
-
+    const [searchField, setSearchField] = useState('title');
     // Fetch data for the current page
     const [checked, setChecked] = useState({});
     const searchParams = useSearchParams();
     const filters = searchParams.get("filters"); // 例如 filters="title,author,institution,source,url,year,date"
     const inputValue = searchParams.get("keyword");
 
+    const [searchValue, setSearchValue] = useState('');
+    const [loading, setLoading] = useState(true);
     // const allColumns = ["title", "author", "institution", "source", "url", "year", "date"];
     const allColumns = Object.keys(columnsVisibility);
-    //通过关键字 实际的data
-    const [selectData, setselectData] = useState([]); // Current page data
-
-    // console.log("ajchen inputValue==" + inputValue);
 
 
+    // console.log("ajchen filters==" + filters);
 
 
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetch(`/api/getData?page=${currentPage}`);
+
+            setLoading(true); // 显示 loading
+
+            const columnsParam = filters ? filters.split(",") : [];
+            // console.log("ajchen columnsParam ====:", columnsParam);
+
+
+            const response = await fetch(`/api/getData?page=${currentPage}&columns=${columnsParam}&inputValue=${inputValue}`);
             const data = await response.json();
-            console.log("currentPage ====:", currentPage);
+
             if (data.success) {
                 // setPageData(data.data);  // Store the data for the current page
                 const fetchedData = data.data;
+                setPageData(fetchedData);
 
+
+                setTotalPages(Math.ceil(fetchedData.length / itemsPerPage));  // 计算总页数
+                setCurrentPageData(data.data.slice(0, itemsPerPage));  // 初始时显示第一页的数据
+                // console.log("ajchen ===" + currentPageData);
+                console.table("当前页数据:" + currentPageData);
+                setLoading(false); // 数据拿到后隐藏 loading
                 // 如果有输入值 (关键字)，则对数据进行筛选
-                if (inputValue) {
-                    const keywords = inputValue.split(',').map(keyword => keyword.trim().toLowerCase()); // 去除空格并转换为小写字母
-                    console.log("ajchen =======" + keywords);
-                    // 筛选数据
-                    const filteredData = fetchedData.filter(item => {
-                        return keywords.some(keyword => {
-                            // 遍历每个关键字，检查它是否出现在数据的任一列中
-                            return Object.values(item).some(value =>
-                                value && value.toString().toLowerCase().includes(keyword) // 转换为字符串并小写化后进行匹配
-                            );
-                        });
-                    });
+                // if (inputValue) {
+                //     const keywords = inputValue.split(',').map(keyword => keyword.trim().toLowerCase()); // 去除空格并转换为小写字母
+                //     console.log("ajchen =======" + keywords);
+                //     // 筛选数据
+                //     const filteredData = fetchedData.filter(item => {
+                //         return keywords.some(keyword => {
+                //             // 遍历每个关键字，检查它是否出现在数据的任一列中
+                //             return Object.values(item).some(value =>
+                //                 value && value.toString().toLowerCase().includes(keyword) // 转换为字符串并小写化后进行匹配
+                //             );
+                //         });
+                //     });
 
-                    // 设置筛选后的数据
-                    setAllData(filteredData);
-                    // setPageData(filteredData);
-                    setTotalPages(Math.ceil(filteredData.length / itemsPerPage));  // 计算总页数
-                } else {
-                    // 如果没有关键字，直接设置获取到的原始数据
-                    setPageData(fetchedData);
-                }
+                //     // 设置筛选后的数据
+                //     setAllData(filteredData);
+                //     // setPageData(filteredData);
+                //     setTotalPages(Math.ceil(filteredData.length / itemsPerPage));  // 计算总页数
+                // } else {
+                //     // 如果没有关键字，直接设置获取到的原始数据
+                //     setPageData(fetchedData);
+                // }
 
             } else {
                 console.error("数据加载失败");
@@ -100,49 +117,49 @@ export default function DataTable() {
 
 
     // 根据当前页码和搜索条件更新 pageData
+    // useEffect(() => {
+    //     let filteredData = pageData;
+
+    //     if (inputValue) {
+    //         // 处理关键词搜索
+    //         const keywords = inputValue.split(',').map(keyword => keyword.trim().toLowerCase());
+    //         filteredData = filteredData.filter(item =>
+    //             keywords.some(keyword => Object.values(item).some(value =>
+    //                 value && value.toString().toLowerCase().includes(keyword)
+    //             ))
+    //         );
+    //     }
+
+    //     // 计算当前页的数据
+    //     const tempPage = filteredData.slice(
+    //         (currentPage - 1) * itemsPerPage,
+    //         currentPage * itemsPerPage
+    //     );
+
+    //     setPageData(tempPage);  // 更新页面数据
+    // }, [currentPage, inputValue]);  // 当页码或搜索条件变化时更新
+
+
+
     useEffect(() => {
-        let filteredData = allData;
-
-        if (inputValue) {
-            // 处理关键词搜索
-            const keywords = inputValue.split(',').map(keyword => keyword.trim().toLowerCase());
-            filteredData = filteredData.filter(item =>
-                keywords.some(keyword => Object.values(item).some(value =>
-                    value && value.toString().toLowerCase().includes(keyword)
-                ))
-            );
-        }
-
-        // 计算当前页的数据
-        const currentPageData = filteredData.slice(
-            (currentPage - 1) * itemsPerPage,
-            currentPage * itemsPerPage
-        );
-
-        setPageData(currentPageData);  // 更新页面数据
-    }, [currentPage, inputValue, allData]);  // 当页码或搜索条件变化时更新
-
-
-
-    useEffect(() => {
-        // console.log("filters 参数:", filters); // 检查 filters 传入的值
+        console.log("filters 参数:", filters); // 检查 filters 传入的值
 
         // // 解析 filters，确保没有空格影响解析
-        const selectedFilters = allColumns
+        const selectedFilters = Array.isArray(filters) ? filters.map(f => f.trim()) : [];
 
 
-        // console.log("解析后的 selectedFilters:", selectedFilters);
+        console.log("解析后的 selectedFilters:", selectedFilters);
 
         // // 初始化所有列的选中状态
-        const newCheckedState = allColumns.reduce((acc, col) => {
-            acc[col] = selectedFilters.includes(col);
-            return acc;
-        }, {});
+        // const newCheckedState = allColumns.reduce((acc, col) => {
+        //     acc[col] = selectedFilters.includes(col);
+        //     return acc;
+        // }, {});
 
         // console.log("最终的 checked 状态:", newCheckedState);
 
-        setChecked(newCheckedState);
-        setColumnsVisibility(newCheckedState);
+        // setChecked(newCheckedState);
+        // setColumnsVisibility(newCheckedState);
 
 
         //处理数据
@@ -200,7 +217,7 @@ export default function DataTable() {
                 columnsVisibility.author && 'Author',
                 columnsVisibility.institution && 'Institution',
                 columnsVisibility.source && 'Source',
-                columnsVisibility.url && 'URL',
+                columnsVisibility.year && 'Year',
             ].filter(Boolean),
             ...pageData.map((row, index) => [
                 index + 1,
@@ -208,7 +225,7 @@ export default function DataTable() {
                 columnsVisibility.author && row.author,
                 columnsVisibility.institution && row.institution,
                 columnsVisibility.source && row.source,
-                columnsVisibility.url && row.url,
+                columnsVisibility.year && row.year,
             ].filter(Boolean)),
         ];
 
@@ -255,102 +272,176 @@ export default function DataTable() {
     const handlePageChange = (newPage) => {
         if (newPage >= 0 && newPage <= totalPages) {
             setCurrentPage(newPage);
+            //切换页的时候把这一页大数据给pageData中
+            // 计算当前页的起始位置
+            const offset = (newPage - 1) * itemsPerPage;
+            setCurrentPageData(pageData.slice(offset, offset + itemsPerPage));  // 设置当前页的数据
+        }
+    };
+
+
+    const handleSearch = async () => {
+        if (!searchValue.trim()) return;
+
+
+        // const activeColumns = Object.keys(columnsVisibility)
+        //     .filter(col => columnsVisibility[col]) // 只用选中的列
+        //     .join(',');
+
+        console.log("ajchen activeColumns======" + searchField);
+        setLoading(true); // 显示 loading
+        try {
+            const response = await fetch(`/api/getData?page=1&columns=${searchField}&inputValue=${encodeURIComponent(searchValue)}`);
+
+            const result = await response.json();
+
+            if (result.success) {
+                setPageData(result.data);
+                setCurrentPage(1);
+                setCurrentPageData(result.data.slice(0, itemsPerPage));
+                setTotalPages(Math.ceil(result.data.length / itemsPerPage));
+                console.log("ajchen  数据返回成功");
+                setLoading(false); // 显示 loading
+            } else {
+                console.error('查询失败：', result.message);
+            }
+        } catch (error) {
+            console.error('请求失败：', error);
         }
     };
 
     return (
+
+
         <Box sx={{ width: '100%', padding: 3 }}>
-        {/* 顶部标题和搜索框 */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-            {/* 左侧标题 */}
-            <Typography variant="h4" sx={{ fontWeight: 'bold' }} color='black'>期刊论文数据检索</Typography>
-            
-            {/* 右侧搜索栏 */}
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TextField
-                    variant="outlined"
-                    placeholder="输入关键词搜索..."
-                    size="small"
-                    sx={{ marginRight: 1 }}
+
+            {/* 顶部标题和搜索框 */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                {/* 左侧标题 */}
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }} color='black'>期刊论文数据检索</Typography>
+
+
+                {/* 右侧搜索栏 */}
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <FormControl sx={{ minWidth: 120, marginRight: 1 }} size="small">
+                        <Select
+                            value={searchField}
+                            onChange={(e) => setSearchField(e.target.value)}
+                            displayEmpty
+                        >
+                            <MenuItem value="title">标题</MenuItem>
+                            <MenuItem value="author">作者</MenuItem>
+                            <MenuItem value="institution">机构地区</MenuItem>
+                            <MenuItem value="source">出处</MenuItem>
+                            <MenuItem value="year">期刊</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <TextField
+                        variant="outlined"
+                        placeholder="输入关键词搜索..."
+                        size="small"
+                        sx={{ marginRight: 1 }}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSearch();
+                            }
+                        }}
                     // onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {/* <Button variant="contained" color="primary" onClick={handleSearch}>搜索</Button> */}
+                    />
+                    {/* <Button variant="contained" color="primary" onClick={handleSearch}>搜索</Button> */}
+                </Box>
+            </Box>
+
+            {/* 导出PDF按钮（放在表格上方靠右） */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+                <Button variant="contained" color="primary" onClick={exportToPdf}>
+                    导出PDF
+                </Button>
+            </Box>
+
+            {/* 可见列筛选 */}
+            <Box sx={{ marginBottom: 2 }}>
+                <Typography variant="h6" color='black'>显示列</Typography>
+                {Object.keys(columnsVisibility).map((column) => (
+                    <FormControlLabel
+                        key={column}
+                        control={
+                            <Checkbox
+                                checked={columnsVisibility[column]}
+                                onChange={() => toggleColumnVisibility(column)}
+                                color="primary"
+                            />
+                        }
+                        label={column}
+                    />
+                ))}
+            </Box>
+
+            {loading ? (
+                <Box sx={{
+                    height: '60vh', // 可根据需要调整高度
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <CircularProgress />
+                    <Typography variant="body1" sx={{ marginTop: 2 }}>正在加载数据，请稍候...</Typography>
+                </Box>
+            ) : (
+                <>
+                    {/* 表格 */}
+                    <TableContainer component={Paper} elevation={3} sx={{ boxShadow: 3 }}>
+                        <Table sx={{ borderCollapse: 'collapse' }}>
+                            <TableHead>
+                                <TableRow sx={{ backgroundColor: '#f4f6f8' }}>
+                                    <TableCell sx={headerCellStyle}>序号</TableCell>
+                                    {columnsVisibility.标题 && <TableCell sx={headerCellStyle}>标题</TableCell>}
+                                    {columnsVisibility.作者 && <TableCell sx={headerCellStyle}>作者</TableCell>}
+                                    {columnsVisibility.机构地区 && <TableCell sx={headerCellStyle}>机构地区</TableCell>}
+                                    {columnsVisibility.出处 && <TableCell sx={headerCellStyle}>出处</TableCell>}
+                                    {columnsVisibility.期刊 && <TableCell sx={headerCellStyle}>期刊</TableCell>}
+                                </TableRow>
+                            </TableHead>
+
+                            <TableBody>
+
+                                {Array.isArray(pageData) && pageData.length > 0 ? (
+                                    currentPageData.map((row, index) => (
+                                        <TableRow key={index} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' }, '&:hover': { backgroundColor: '#f1f1f1' }, borderTop: '1px solid #ddd', borderBottom: '1px solid #ddd' }}>
+                                            <TableCell align="center">{index + 1 + (currentPage - 1) * itemsPerPage}</TableCell>
+                                            {columnsVisibility.标题 && <TableCell align="center">{row.title}</TableCell>}
+                                            {columnsVisibility.作者 && <TableCell align="center">{row.author}</TableCell>}
+                                            {columnsVisibility.机构地区 && <TableCell align="center">{row.institution}</TableCell>}
+                                            {columnsVisibility.出处 && <TableCell align="center">{row.source}</TableCell>}
+                                            {columnsVisibility.期刊 && <TableCell align="center">{row.year}</TableCell>
+                                            }
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={8} align="center" sx={{ padding: 3 }}>
+                                            没有数据
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </>
+            )}
+
+
+            {/* 分页 */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+                <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>上一页</Button>
+                <Typography sx={{ margin: '0 15px' }}>第 {currentPage} 页 / 共 {totalPages} 页</Typography>
+                <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>下一页</Button>
             </Box>
         </Box>
-    
-        {/* 导出PDF按钮（放在表格上方靠右） */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
-            <Button variant="contained" color="primary" onClick={exportToPdf}>
-                导出PDF
-            </Button>
-        </Box>
-    
-        {/* 可见列筛选 */}
-        <Box sx={{ marginBottom: 2 }}>
-            <Typography variant="h6" color='black'>显示列</Typography>
-            {Object.keys(columnsVisibility).map((column) => (
-                <FormControlLabel
-                    key={column}
-                    control={
-                        <Checkbox
-                            checked={columnsVisibility[column]}
-                            onChange={() => toggleColumnVisibility(column)}
-                            color="primary"
-                        />
-                    }
-                    label={column}
-                />
-            ))}
-        </Box>
-    
-        {/* 表格 */}
-        <TableContainer component={Paper} elevation={3} sx={{ boxShadow: 3 }}>
-            <Table sx={{ borderCollapse: 'collapse' }}>
-                <TableHead>
-                    <TableRow sx={{ backgroundColor: '#f4f6f8' }}>
-                        <TableCell sx={headerCellStyle}>序号</TableCell>
-                        {columnsVisibility.标题 && <TableCell sx={headerCellStyle}>标题</TableCell>}
-                        {columnsVisibility.作者 && <TableCell sx={headerCellStyle}>作者</TableCell>}
-                        {columnsVisibility.机构地区 && <TableCell sx={headerCellStyle}>机构地区</TableCell>}
-                        {columnsVisibility.出处 && <TableCell sx={headerCellStyle}>出处</TableCell>}
-                        {columnsVisibility.网址 && <TableCell sx={headerCellStyle}>网址</TableCell>}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {Array.isArray(pageData) && pageData.length > 0 ? (
-                        pageData.map((row, index) => (
-                            <TableRow key={index} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' }, '&:hover': { backgroundColor: '#f1f1f1' }, borderTop: '1px solid #ddd', borderBottom: '1px solid #ddd' }}>
-                                <TableCell align="center">{index + 1 + (currentPage - 1) * itemsPerPage}</TableCell>
-                                {columnsVisibility.标题 && <TableCell align="center">{row.title}</TableCell>}
-                                {columnsVisibility.作者 && <TableCell align="center">{row.author}</TableCell>}
-                                {columnsVisibility.机构地区 && <TableCell align="center">{row.institution}</TableCell>}
-                                {columnsVisibility.出处 && <TableCell align="center">{row.source}</TableCell>}
-                                {columnsVisibility.网址 && (
-                                    <TableCell align="center">
-                                        <Link href={row.url} target="_blank" rel="noopener">{row.url}</Link>
-                                    </TableCell>
-                                )}
-                            </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={8} align="center" sx={{ padding: 3 }}>
-                                没有数据
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    
-        {/* 分页 */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
-            <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>上一页</Button>
-            <Typography sx={{ margin: '0 15px' }}>第 {currentPage} 页 / 共 {totalPages} 页</Typography>
-            <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>下一页</Button>
-        </Box>
-    </Box>
-    
+
     );
 }
 
